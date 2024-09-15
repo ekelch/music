@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -12,6 +13,7 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("Hello world")
 
+	fmt.Print("test")
 	clock := widget.NewLabel("")
 	updateTime(clock)
 	w.SetContent(clock)

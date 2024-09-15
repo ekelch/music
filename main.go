@@ -14,6 +14,7 @@ func main() {
 	w := a.NewWindow("Hello world")
 
 	fmt.Print("test")
+
 	clock := widget.NewLabel("")
 	updateTime(clock)
 	w.SetContent(clock)

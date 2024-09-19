@@ -30,10 +30,10 @@ func main() {
 
 	progressBar := widget.NewProgressBar()
 	go func() {
-		songDur := 180
-		for i := 1; i < songDur; i++ {
+		songDur := 180.0
+		for i := 1.0; i < songDur; i++ {
 			time.Sleep(time.Second)
-			progressBar.SetValue(float64(i) / float64(songDur))
+			progressBar.SetValue(i / songDur)
 		}
 	}()
 
@@ -43,9 +43,4 @@ func main() {
 	w.SetContent(content)
 
 	w.ShowAndRun()
-}
-
-func updateTime(clock *widget.Label) {
-	formatted := time.Now().Format("Time: 03:04:05")
-	clock.SetText(formatted)
 }

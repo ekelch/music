@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"os"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -8,6 +10,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/ebitengine/oto/v3"
+	"github.com/hajimehoshi/go-mp3"
 )
 
 func main() {
@@ -23,7 +27,7 @@ func main() {
 		func(i widget.ListItemID, o fyne.CanvasObject) { o.(*widget.Label).SetText(songList[i]) })
 
 	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() {})
-	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPause), func() {})
+	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPause), func() { initMp3() })
 	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() {})
 	controlArea := container.NewHBox(previousBtn, ppBtn, nextBtn)
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
@@ -43,4 +47,51 @@ func main() {
 	w.SetContent(content)
 
 	w.ShowAndRun()
+}
+
+func initMp3() {
+	// ref: https://github.com/ebitengine/oto?tab=readme-ov-file#usage
+	fileBytes, err := os.ReadFile("Yee.mp3")
+	if err != nil {
+		panic("Failed to read mp3 file: " + err.Error())
+	}
+
+	fileBytesReader := bytes.NewReader(fileBytes)
+
+	decodedMp3, err := mp3.NewDecoder(fileBytesReader)
+	if err != nil {
+		panic("Failed to decode mp3 bytes reader: " + err.Error())
+	}
+
+	// oto config
+	otoConfig := oto.NewContextOptions{SampleRate: 44100, ChannelCount: 2, Format: oto.FormatSignedInt16LE}
+
+	otoContext, readyChan, err := oto.NewContext(&otoConfig)
+	if err != nil {
+		panic("Oto new context failed : " + err.Error())
+	}
+
+	<-readyChan // this is waiting for hardware audio devices to be ready
+
+	player := otoContext.NewPlayer(decodedMp3)
+
+	player.Play()
+
+	for player.IsPlaying() {
+		time.Sleep(time.Millisecond)
+	}
+
+	// This is how we will seek using the scrubber later on!
+	//
+	// newPos, err := player.(io.Seeker).Seek(0, io.SeekStart)
+	// if err != nil{
+	//     panic("player.Seek failed: " + err.Error())
+	// }
+	// println("Player is now at position:", newPos)
+	// player.Play()
+	//
+	err = player.Close()
+	if err != nil {
+		panic("failed closing player: " + err.Error())
+	}
 }

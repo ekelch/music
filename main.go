@@ -15,6 +15,9 @@ import (
 )
 
 var otoGlobalContext oto.Context
+var player oto.Player
+var currentSong Song
+var songList = []Song{{name: "yee", path: "Yee.mp3"}, {name: "noblest strive", path: "bladee.mp3"}, {name: "song of storms", path: "zelda.mp3"}}
 
 func main() {
 	initMp3()
@@ -23,20 +26,17 @@ func main() {
 	w := a.NewWindow("AppContainer")
 	w.Resize(fyne.NewSize(1200, 700))
 
-	var songList = []Song{{name: "yee", path: "Yee.mp3"}, {name: "noblest strive", path: "bladee.mp3"}, {name: "niki", path: "niki.mp3"}}
-
 	scrollArea := widget.NewList(
 		func() int { return len(songList) },
 		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
 		func(i widget.ListItemID, btn fyne.CanvasObject) {
 			btn.(*widget.Button).SetText(songList[i].name)
-			btn.(*widget.Button).OnTapped = func() { playSong(songList[i]) }
+			btn.(*widget.Button).OnTapped = func() { go playSong(songList[i]) }
 		})
 
-	testSong := Song{name: "Yee", path: "Yee.mp3"}
 	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() {})
-	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() { playSong(testSong) })
-	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() {})
+	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() { ppSong() })
+	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() { skipSong() })
 	controlArea := container.NewHBox(previousBtn, ppBtn, nextBtn)
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
@@ -72,8 +72,8 @@ func initMp3() {
 
 }
 
-func playSong(song Song) {
-	fileBytes, err := os.ReadFile(song.path)
+func decodeMp3(song Song) mp3.Decoder {
+	fileBytes, err := os.ReadFile("resources/" + song.path)
 	if err != nil {
 		panic("Failed to read mp3 file: " + err.Error())
 	}
@@ -82,17 +82,31 @@ func playSong(song Song) {
 	if err != nil {
 		panic("Failed to decode mp3 bytes reader: " + err.Error())
 	}
+	return *decodedMp3
+}
 
-	player := otoGlobalContext.NewPlayer(decodedMp3)
+func playSong(song Song) {
+	currentSong = song
+	decodedMp3 := decodeMp3(song)
+	player = *otoGlobalContext.NewPlayer(&decodedMp3)
 	player.Play()
+}
 
-	for player.IsPlaying() {
-		time.Sleep(time.Millisecond)
+func ppSong() {
+	if player.IsPlaying() {
+		player.Pause()
+	} else {
+		player.Play()
 	}
+}
 
-	err = player.Close()
-	if err != nil {
-		panic("failed closing player: " + err.Error())
+func skipSong() {
+	ppSong()
+	for i, v := range songList {
+		if v == currentSong {
+			playSong(songList[(i+1)%(len(songList))])
+			break
+		}
 	}
 }
 

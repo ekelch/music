@@ -23,12 +23,15 @@ func main() {
 	w := a.NewWindow("AppContainer")
 	w.Resize(fyne.NewSize(1200, 700))
 
-	var songList = []Song{Song{name: "yee", path: "Yee.mp3"}, Song{name: "noblest strive", path: "bladee.mp3"}, Song{name: "niki", path: "niki.mp3"}}
+	var songList = []Song{{name: "yee", path: "Yee.mp3"}, {name: "noblest strive", path: "bladee.mp3"}, {name: "niki", path: "niki.mp3"}}
 
 	scrollArea := widget.NewList(
 		func() int { return len(songList) },
-		func() fyne.CanvasObject { return widget.NewLabel("template") },
-		func(i widget.ListItemID, o fyne.CanvasObject) { o.(*widget.Label).SetText(songList[i].name) })
+		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
+		func(i widget.ListItemID, btn fyne.CanvasObject) {
+			btn.(*widget.Button).SetText(songList[i].name)
+			btn.(*widget.Button).OnTapped = func() { playSong(songList[i]) }
+		})
 
 	testSong := Song{name: "Yee", path: "Yee.mp3"}
 	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() {})

@@ -18,7 +18,12 @@ import (
 var otoGlobalContext oto.Context
 var player oto.Player
 var currentSong Song
-var songList = []Song{{name: "yee", path: "Yee.mp3"}, {name: "noblest strive", path: "bladee.mp3"}, {name: "song of storms", path: "zelda.mp3"}}
+var songList = []Song{
+	{name: "Innocent of All Things", path: "innocent.mp3"},
+	{name: "Reality Surf", path: "reality.mp3"},
+	{name: "Noblest Strive", path: "noblest.mp3"},
+	{name: "I Think...", path: "ithink.mp3"},
+	{name: "Blush", path: "blush.mp3"}}
 
 func main() {
 	initMp3()
@@ -88,6 +93,9 @@ func decodeMp3(song Song) mp3.Decoder {
 
 func playSong(song Song) {
 	currentSong = song
+	if (player != oto.Player{}) {
+		player.Pause()
+	}
 	decodedMp3 := decodeMp3(song)
 	player = *otoGlobalContext.NewPlayer(&decodedMp3)
 	player.Play()

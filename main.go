@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"time"
 
@@ -14,21 +15,29 @@ import (
 	"github.com/hajimehoshi/go-mp3"
 )
 
+var otoGlobalContext oto.Context
+var player oto.Player
+var currentSong Song
+var songList = []Song{{name: "yee", path: "Yee.mp3"}, {name: "noblest strive", path: "bladee.mp3"}, {name: "song of storms", path: "zelda.mp3"}}
+
 func main() {
+	initMp3()
+
 	a := app.New()
 	w := a.NewWindow("AppContainer")
 	w.Resize(fyne.NewSize(1200, 700))
 
-	var songList = []string{"song1", "song2", "song3", "song4", "song5", "song6", "song7", "song8", "song9", "song10", "song11", "song12", "song13", "song14", "song15", "song16", "song17", "song18"}
-
 	scrollArea := widget.NewList(
 		func() int { return len(songList) },
-		func() fyne.CanvasObject { return widget.NewLabel("template") },
-		func(i widget.ListItemID, o fyne.CanvasObject) { o.(*widget.Label).SetText(songList[i]) })
+		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
+		func(i widget.ListItemID, btn fyne.CanvasObject) {
+			btn.(*widget.Button).SetText(songList[i].name)
+			btn.(*widget.Button).OnTapped = func() { go playSong(songList[i]) }
+		})
 
-	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() {})
-	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPause), func() { initMp3() })
-	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() {})
+	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() { restartSong() })
+	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() { ppSong() })
+	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() { skipSong() })
 	controlArea := container.NewHBox(previousBtn, ppBtn, nextBtn)
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
@@ -50,19 +59,6 @@ func main() {
 }
 
 func initMp3() {
-	// ref: https://github.com/ebitengine/oto?tab=readme-ov-file#usage
-	fileBytes, err := os.ReadFile("Yee.mp3")
-	if err != nil {
-		panic("Failed to read mp3 file: " + err.Error())
-	}
-
-	fileBytesReader := bytes.NewReader(fileBytes)
-
-	decodedMp3, err := mp3.NewDecoder(fileBytesReader)
-	if err != nil {
-		panic("Failed to decode mp3 bytes reader: " + err.Error())
-	}
-
 	// oto config
 	otoConfig := oto.NewContextOptions{SampleRate: 44100, ChannelCount: 2, Format: oto.FormatSignedInt16LE}
 
@@ -71,27 +67,58 @@ func initMp3() {
 		panic("Oto new context failed : " + err.Error())
 	}
 
-	<-readyChan // this is waiting for hardware audio devices to be ready
+	otoGlobalContext = *otoContext
 
-	player := otoContext.NewPlayer(decodedMp3)
+	<-readyChan
 
-	player.Play()
+}
 
-	for player.IsPlaying() {
-		time.Sleep(time.Millisecond)
-	}
-
-	// This is how we will seek using the scrubber later on!
-	//
-	// newPos, err := player.(io.Seeker).Seek(0, io.SeekStart)
-	// if err != nil{
-	//     panic("player.Seek failed: " + err.Error())
-	// }
-	// println("Player is now at position:", newPos)
-	// player.Play()
-	//
-	err = player.Close()
+func decodeMp3(song Song) mp3.Decoder {
+	fileBytes, err := os.ReadFile("resources/" + song.path)
 	if err != nil {
-		panic("failed closing player: " + err.Error())
+		panic("Failed to read mp3 file: " + err.Error())
 	}
+	fileBytesReader := bytes.NewReader(fileBytes)
+	decodedMp3, err := mp3.NewDecoder(fileBytesReader)
+	if err != nil {
+		panic("Failed to decode mp3 bytes reader: " + err.Error())
+	}
+	return *decodedMp3
+}
+
+func playSong(song Song) {
+	currentSong = song
+	decodedMp3 := decodeMp3(song)
+	player = *otoGlobalContext.NewPlayer(&decodedMp3)
+	player.Play()
+}
+
+func ppSong() {
+	if player.IsPlaying() {
+		player.Pause()
+	} else {
+		player.Play()
+	}
+}
+
+func skipSong() {
+	ppSong()
+	for i, v := range songList {
+		if v == currentSong {
+			playSong(songList[(i+1)%(len(songList))])
+			break
+		}
+	}
+}
+
+func restartSong() {
+	_, err := player.Seek(0, io.SeekStart)
+	if err != nil {
+		panic("Failed to seek start of song: " + err.Error())
+	}
+}
+
+type Song struct {
+	name string
+	path string
 }

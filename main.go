@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"time"
 
@@ -34,7 +35,7 @@ func main() {
 			btn.(*widget.Button).OnTapped = func() { go playSong(songList[i]) }
 		})
 
-	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() {})
+	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() { restartSong() })
 	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() { ppSong() })
 	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() { skipSong() })
 	controlArea := container.NewHBox(previousBtn, ppBtn, nextBtn)
@@ -107,6 +108,13 @@ func skipSong() {
 			playSong(songList[(i+1)%(len(songList))])
 			break
 		}
+	}
+}
+
+func restartSong() {
+	_, err := player.Seek(0, io.SeekStart)
+	if err != nil {
+		panic("Failed to seek start of song: " + err.Error())
 	}
 }
 

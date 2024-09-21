@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -9,21 +10,20 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/ebitengine/oto/v3"
 )
-
-var progressBinding binding.Float
 
 func GetGUI() *fyne.Container {
 	controlArea := container.NewHBox(buildBtnGroup(), layout.NewSpacer(), buildVolumeSlider())
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
-	controlGroup := container.NewVBox(controlArea, buildSongProgress())
-	content := container.NewBorder(nil, controlGroup, nil, nil, buildScrollArea())
+	controlGroup := container.NewVBox(controlArea, buildSongProgress(), buildProgLabel())
+	content := container.NewBorder(nil, controlGroup, nil, nil, buildSongList())
 
 	return content
 }
 
-func buildScrollArea() *widget.List {
+func buildSongList() *widget.List {
 	return widget.NewList(
 		func() int { return len(songList) },
 		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
@@ -53,12 +53,31 @@ func buildSongProgress() *widget.Slider {
 	return slider
 }
 
+func buildProgLabel() *widget.Label {
+	str := ""
+	progLabelBinding = binding.BindString(&str)
+	sLabel := widget.NewLabelWithData(progLabelBinding)
+	return sLabel
+}
+
 func setProg() {
 	for {
+		if (player == oto.Player{}) || !player.IsPlaying() {
+			continue
+		}
+		timeString := fmt.Sprintf(
+			"%02d:%02d / %02d:%02d",
+			int(songTime)/60, int(songTime)%60, currentSong.durSec/60, currentSong.durSec%60)
+
+		progLabelBinding.Set(timeString)
 		progressBinding.Set(songTime / float64(currentSong.durSec) * 10000)
+
 		time.Sleep(time.Millisecond * 250)
-		songTime += 0.25
+		fmt.Println("icn time")
+		songTime += 0.250
 	}
 }
 
+var progressBinding binding.Float
+var progLabelBinding binding.String
 var songTime float64 = 0.0

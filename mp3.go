@@ -2,15 +2,17 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 
 	"github.com/ebitengine/oto/v3"
 	"github.com/hajimehoshi/go-mp3"
 )
 
-func initMp3() {
-	// oto config
-	otoConfig := oto.NewContextOptions{SampleRate: 44100, ChannelCount: 2, Format: oto.FormatSignedInt16LE}
+const sampleRate int = 44100
+
+func initMp3() { // only runs once on app start
+	otoConfig := oto.NewContextOptions{SampleRate: sampleRate, ChannelCount: 2, Format: oto.FormatSignedInt16LE}
 
 	otoContext, readyChan, err := oto.NewContext(&otoConfig)
 	if err != nil {
@@ -22,15 +24,58 @@ func initMp3() {
 	<-readyChan
 }
 
-func decodeMp3(song Song) mp3.Decoder {
+func decodeMp3(song *Song) *mp3.Decoder {
 	fileBytes, err := os.ReadFile("resources/" + song.path)
 	if err != nil {
 		panic("Failed to read mp3 file: " + err.Error())
 	}
+
 	fileBytesReader := bytes.NewReader(fileBytes)
+
 	decodedMp3, err := mp3.NewDecoder(fileBytesReader)
 	if err != nil {
 		panic("Failed to decode mp3 bytes reader: " + err.Error())
 	}
-	return *decodedMp3
+	song.durSec = int(decodedMp3.Length() * 8 / (int64(decodedMp3.SampleRate()) * 32))
+	return decodedMp3
+}
+
+func readSong(song Song) {
+	if (player != oto.Player{}) {
+		player.Pause()
+	}
+	decodedMp3 := decodeMp3(&song)
+	currentSong = song
+
+	go updateSongProgress()
+	player = *otoGlobalContext.NewPlayer(decodedMp3)
+	player.Play()
+}
+
+func ppSong() {
+	if (player == oto.Player{}) {
+		return
+	}
+	if player.IsPlaying() {
+		player.Pause()
+	} else {
+		player.Play()
+	}
+}
+
+func skipSong() {
+	ppSong()
+	for i, v := range songList {
+		if v == currentSong {
+			readSong(songList[(i+1)%(len(songList))])
+			break
+		}
+	}
+}
+
+func restartSong() {
+	_, err := player.Seek(0, io.SeekStart)
+	if err != nil {
+		panic("Failed to seek start of song: " + err.Error())
+	}
 }

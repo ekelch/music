@@ -21,6 +21,6 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("AppContainer")
 	w.Resize(fyne.NewSize(1200, 700))
-	w.SetContent(getGUI())
+	w.SetContent(GetGUI())
 	w.ShowAndRun()
 }

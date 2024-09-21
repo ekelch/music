@@ -46,10 +46,14 @@ func buildVolumeSlider() *widget.Slider {
 	return widget.NewSliderWithData(0.0, 100.0, volumeBinding)
 }
 
-func buildSongProgress() *widget.Slider {
+func buildSongProgress() *tappableSlider {
 	progress := 0.0
 	progressBinding = binding.BindFloat(&progress)
-	slider := widget.NewSliderWithData(0.0, 10000.0, progressBinding)
+	slider := &tappableSlider{}
+	slider.ExtendBaseWidget(slider)
+	slider.Min = 0
+	slider.Max = PROG_MAX
+	slider.Bind(progressBinding)
 	return slider
 }
 
@@ -70,10 +74,9 @@ func setProg() {
 			int(songTime)/60, int(songTime)%60, currentSong.durSec/60, currentSong.durSec%60)
 
 		progLabelBinding.Set(timeString)
-		progressBinding.Set(songTime / float64(currentSong.durSec) * 10000)
+		progressBinding.Set(songTime / float64(currentSong.durSec) * PROG_MAX)
 
 		time.Sleep(time.Millisecond * 250)
-		fmt.Println("icn time")
 		songTime += 0.250
 	}
 }
@@ -81,3 +84,5 @@ func setProg() {
 var progressBinding binding.Float
 var progLabelBinding binding.String
 var songTime float64 = 0.0
+
+const PROG_MAX float64 = 10000

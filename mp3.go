@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 
@@ -78,5 +79,14 @@ func restartSong() {
 	_, err := player.Seek(0, io.SeekStart)
 	if err != nil {
 		panic("Failed to seek start of song: " + err.Error())
+	}
+}
+
+func seekTime(t int64) {
+	fmt.Println(t)
+	if (player != oto.Player{}) {
+		re, err := player.Seek(t, io.SeekStart)
+		fmt.Println("response from seek" + string(re))
+		fmt.Println("error from seek: " + err.Error())
 	}
 }

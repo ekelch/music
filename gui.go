@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -50,14 +49,16 @@ func buildVolumeSlider() *widget.Slider {
 func buildSongProgress() *widget.Slider {
 	progress := 0.0
 	progressBinding = binding.BindFloat(&progress)
-	slider := widget.NewSliderWithData(0.0, 100.0, progressBinding)
+	slider := widget.NewSliderWithData(0.0, 10000.0, progressBinding)
 	return slider
 }
 
-func updateSongProgress() {
-	for i := 0; i < currentSong.durSec; i++ {
-		progressBinding.Set(float64(i) / float64(currentSong.durSec) * 100)
-		fmt.Printf("%d / %2d:%2d\n", i, currentSong.durSec/60, currentSong.durSec%60)
-		time.Sleep(time.Second)
+func setProg() {
+	for {
+		progressBinding.Set(songTime / float64(currentSong.durSec) * 10000)
+		time.Sleep(time.Millisecond * 250)
+		songTime += 0.25
 	}
 }
+
+var songTime float64 = 0.0

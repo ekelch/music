@@ -30,9 +30,9 @@ func decodeMp3(song *Song) *mp3.Decoder {
 		panic("Failed to read mp3 file: " + err.Error())
 	}
 
-	fileBytesReader := bytes.NewReader(fileBytes)
+	reader := bytes.NewReader(fileBytes)
 
-	decodedMp3, err := mp3.NewDecoder(fileBytesReader)
+	decodedMp3, err := mp3.NewDecoder(reader)
 	if err != nil {
 		panic("Failed to decode mp3 bytes reader: " + err.Error())
 	}
@@ -47,7 +47,8 @@ func readSong(song Song) {
 	decodedMp3 := decodeMp3(&song)
 	currentSong = song
 
-	go updateSongProgress()
+	songTime = 0
+
 	player = *otoGlobalContext.NewPlayer(decodedMp3)
 	player.Play()
 }

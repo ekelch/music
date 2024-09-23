@@ -16,9 +16,7 @@ type tappableSlider struct {
 }
 
 func (t *tappableSlider) Tapped(pe *fyne.PointEvent) {
-	percent := pe.AbsolutePosition.X / 1200
-	seek := float32(currentSong.durSec) * percent
-	seekTime(int64(seek))
+	seekTime(pe.AbsolutePosition.X / 1200)
 }
 
 func (t *tappableSlider) SecondaryTapped(_ *fyne.PointEvent) {

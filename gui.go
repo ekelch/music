@@ -67,22 +67,23 @@ func buildProgLabel() *widget.Label {
 func setProg() {
 	for {
 		if (player == oto.Player{}) || !player.IsPlaying() {
+			time.Sleep(time.Millisecond * 250)
 			continue
 		}
 		timeString := fmt.Sprintf(
 			"%02d:%02d / %02d:%02d",
-			int(songTime)/60, int(songTime)%60, currentSong.durSec/60, currentSong.durSec%60)
+			int(songElapsed)/60, int(songElapsed)%60, currentSong.durSec/60, currentSong.durSec%60)
 
 		progLabelBinding.Set(timeString)
-		progressBinding.Set(songTime / float64(currentSong.durSec) * PROG_MAX)
+		progressBinding.Set(songElapsed / float64(currentSong.durSec) * PROG_MAX)
 
 		time.Sleep(time.Millisecond * 250)
-		songTime += 0.250
+		songElapsed += 0.250
 	}
 }
 
 var progressBinding binding.Float
 var progLabelBinding binding.String
-var songTime float64 = 0.0
+var songElapsed float64 = 0.0
 
 const PROG_MAX float64 = 10000

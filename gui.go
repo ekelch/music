@@ -14,7 +14,7 @@ import (
 )
 
 func GetGUI() *fyne.Container {
-	controlArea := container.NewHBox(buildBtnGroup(), layout.NewSpacer(), buildVolumeSlider())
+	controlArea := container.NewGridWithColumns(5, buildBtnGroup(), layout.NewSpacer(), layout.NewSpacer(), layout.NewSpacer(), buildVolumeSlider())
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
 	controlGroup := container.NewVBox(controlArea, buildSongProgress(), buildProgLabel())
@@ -40,16 +40,21 @@ func buildBtnGroup() *fyne.Container {
 	return container.NewHBox(previousBtn, ppBtn, nextBtn)
 }
 
-func buildVolumeSlider() *widget.Slider {
+func buildVolumeSlider() *volumeSlider {
 	volume := 69.0
-	volumeBinding := binding.BindFloat(&volume)
-	return widget.NewSliderWithData(0.0, 100.0, volumeBinding)
+	volumeBinding = binding.BindFloat(&volume)
+	slider := &volumeSlider{}
+	slider.ExtendBaseWidget(slider)
+	slider.Min = 0
+	slider.Max = 100
+	slider.Bind(volumeBinding)
+	return slider
 }
 
-func buildSongProgress() *tappableSlider {
+func buildSongProgress() *progressSlider {
 	progress := 0.0
 	progressBinding = binding.BindFloat(&progress)
-	slider := &tappableSlider{}
+	slider := &progressSlider{}
 	slider.ExtendBaseWidget(slider)
 	slider.Min = 0
 	slider.Max = PROG_MAX
@@ -84,6 +89,7 @@ func setProg() {
 
 var progressBinding binding.Float
 var progLabelBinding binding.String
+var volumeBinding binding.Float
 var songElapsed float64 = 0.0
 
 const PROG_MAX float64 = 10000

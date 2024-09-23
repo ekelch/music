@@ -50,6 +50,11 @@ func decodeMp3(song *Song) *mp3.Decoder {
 	return decodedMp3
 }
 
+func setVolume(v float64) {
+	volumeBinding.Set(v * 100)
+	player.SetVolume(v)
+}
+
 func readSong(song Song) {
 	if (player != oto.Player{}) {
 		player.Pause()

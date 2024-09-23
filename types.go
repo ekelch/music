@@ -11,14 +11,26 @@ type Song struct {
 	durSec int
 }
 
-type tappableSlider struct {
+type progressSlider struct {
 	widget.Slider
 }
 
-func (t *tappableSlider) Tapped(pe *fyne.PointEvent) {
-	seekTime(pe.AbsolutePosition.X / 1200)
+func (t *progressSlider) Tapped(pe *fyne.PointEvent) {
+	seekTime(pe.Position.X / t.Size().Width)
 }
 
-func (t *tappableSlider) SecondaryTapped(_ *fyne.PointEvent) {
+func (t *progressSlider) SecondaryTapped(_ *fyne.PointEvent) {
+
+}
+
+type volumeSlider struct {
+	widget.Slider
+}
+
+func (t *volumeSlider) Tapped(pe *fyne.PointEvent) {
+	setVolume(float64(pe.Position.X / t.Size().Width))
+}
+
+func (t *volumeSlider) SecondaryTapped(_ *fyne.PointEvent) {
 
 }

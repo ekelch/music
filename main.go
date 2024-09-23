@@ -16,11 +16,16 @@ var songList = []Song{
 	{name: "I Think...", path: "ithink.mp3"},
 	{name: "Blush", path: "blush.mp3"}}
 
+const WINDOW_WIDTH = 1200
+const WINDOW_HEIGHT = 700
+
 func main() {
 	initMp3()
 	a := app.New()
 	w := a.NewWindow("AppContainer")
-	w.Resize(fyne.NewSize(1200, 700))
-	w.SetContent(getGUI())
+	w.Resize(fyne.NewSize(WINDOW_WIDTH, WINDOW_HEIGHT))
+	w.SetContent(GetGUI())
+
+	go setProg()
 	w.ShowAndRun()
 }

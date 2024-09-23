@@ -1,77 +1,95 @@
 package main
 
 import (
-	"io"
+	"fmt"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/ebitengine/oto/v3"
 )
 
-func getGUI() *fyne.Container {
-	scrollArea := widget.NewList(
+func GetGUI() *fyne.Container {
+	controlArea := container.NewGridWithColumns(5, buildBtnGroup(), layout.NewSpacer(), layout.NewSpacer(), layout.NewSpacer(), buildVolumeSlider())
+	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
+
+	controlGroup := container.NewVBox(controlArea, buildSongProgress(), buildProgLabel())
+	content := container.NewBorder(nil, controlGroup, nil, nil, buildSongList())
+
+	return content
+}
+
+func buildSongList() *widget.List {
+	return widget.NewList(
 		func() int { return len(songList) },
 		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
 		func(i widget.ListItemID, btn fyne.CanvasObject) {
 			btn.(*widget.Button).SetText(songList[i].name)
 			btn.(*widget.Button).OnTapped = func() { go readSong(songList[i]) }
 		})
+}
 
+func buildBtnGroup() *fyne.Container {
 	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() { restartSong() })
 	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() { ppSong() })
 	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() { skipSong() })
-	controlArea := container.NewHBox(previousBtn, ppBtn, nextBtn)
-	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
+	return container.NewHBox(previousBtn, ppBtn, nextBtn)
+}
 
-	progressBar := widget.NewProgressBar()
-	go func() {
-		songDur := 180.0
-		for i := 1.0; i < songDur; i++ {
-			time.Sleep(time.Second)
-			progressBar.SetValue(i / songDur)
+func buildVolumeSlider() *volumeSlider {
+	volume := 69.0
+	volumeBinding = binding.BindFloat(&volume)
+	slider := &volumeSlider{}
+	slider.ExtendBaseWidget(slider)
+	slider.Min = 0
+	slider.Max = 100
+	slider.Bind(volumeBinding)
+	return slider
+}
+
+func buildSongProgress() *progressSlider {
+	progress := 0.0
+	progressBinding = binding.BindFloat(&progress)
+	slider := &progressSlider{}
+	slider.ExtendBaseWidget(slider)
+	slider.Min = 0
+	slider.Max = PROG_MAX
+	slider.Bind(progressBinding)
+	return slider
+}
+
+func buildProgLabel() *widget.Label {
+	str := ""
+	progLabelBinding = binding.BindString(&str)
+	sLabel := widget.NewLabelWithData(progLabelBinding)
+	return sLabel
+}
+
+func setProg() {
+	for {
+		if (player == oto.Player{}) || !player.IsPlaying() {
+			time.Sleep(time.Millisecond * 250)
+			continue
 		}
-	}()
+		timeString := fmt.Sprintf(
+			"%02d:%02d / %02d:%02d",
+			int(songElapsed)/60, int(songElapsed)%60, currentSong.durSec/60, currentSong.durSec%60)
 
-	controlGroup := container.NewVBox(controlArea, progressBar)
-	content := container.NewBorder(nil, controlGroup, nil, nil, scrollArea)
+		progLabelBinding.Set(timeString)
+		progressBinding.Set(songElapsed / float64(currentSong.durSec) * PROG_MAX)
 
-	return content
-}
-
-func readSong(song Song) {
-	currentSong = song
-	if (player != oto.Player{}) {
-		player.Pause()
-	}
-	decodedMp3 := decodeMp3(song)
-	player = *otoGlobalContext.NewPlayer(&decodedMp3)
-	player.Play()
-}
-
-func ppSong() {
-	if player.IsPlaying() {
-		player.Pause()
-	} else {
-		player.Play()
+		time.Sleep(time.Millisecond * 250)
+		songElapsed += 0.250
 	}
 }
 
-func skipSong() {
-	ppSong()
-	for i, v := range songList {
-		if v == currentSong {
-			readSong(songList[(i+1)%(len(songList))])
-			break
-		}
-	}
-}
+var progressBinding binding.Float
+var progLabelBinding binding.String
+var volumeBinding binding.Float
+var songElapsed float64 = 0.0
 
-func restartSong() {
-	_, err := player.Seek(0, io.SeekStart)
-	if err != nil {
-		panic("Failed to seek start of song: " + err.Error())
-	}
-}
+const PROG_MAX float64 = 10000

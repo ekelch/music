@@ -7,3 +7,9 @@ python based machine learning music player using go/fyne gui
 3) clone repo: git clone https://github.com/ekelch/music
 4) go mod tidy (probably)
 5) go run .
+
+## capture video
+1) install python: https://www.python.org/downloads/
+2) ensure pip version up to date: pip install --upgrade pip
+3) get delib: pip install dlib --verbose
+4) pip install opencv-python

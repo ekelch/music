@@ -1,10 +1,9 @@
 module PLAYER
 
-go 1.22.5
-
-require fyne.io/fyne/v2 v2.5.1
+go 1.23.1
 
 require (
+	fyne.io/fyne/v2 v2.5.1 // indirect
 	fyne.io/systray v1.11.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

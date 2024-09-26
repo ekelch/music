@@ -11,5 +11,6 @@ python based machine learning music player using go/fyne gui
 ## capture video
 1) install python: https://www.python.org/downloads/
 2) ensure pip version up to date: pip install --upgrade pip
-3) get delib: pip install dlib --verbose
-4) pip install opencv-python
+3) install cmake
+4) get delib: pip install dlib --verbose
+5) pip install opencv-python

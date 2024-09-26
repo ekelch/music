@@ -1,51 +1,31 @@
 package main
 
 import (
-	"time"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/theme"
-	"fyne.io/fyne/v2/widget"
+	"github.com/ebitengine/oto/v3"
 )
 
+var otoGlobalContext oto.Context
+var player oto.Player
+var currentSong Song
+var songList = []Song{
+	{name: "Innocent of All Things", path: "innocent.mp3"},
+	{name: "Reality Surf", path: "reality.mp3"},
+	{name: "Noblest Strive", path: "noblest.mp3"},
+	{name: "I Think...", path: "ithink.mp3"},
+	{name: "Blush", path: "blush.mp3"}}
+
+const WINDOW_WIDTH = 1200
+const WINDOW_HEIGHT = 700
+
 func main() {
+	initMp3()
 	a := app.New()
 	w := a.NewWindow("AppContainer")
-	w.Resize(fyne.NewSize(1200, 700))
+	w.Resize(fyne.NewSize(WINDOW_WIDTH, WINDOW_HEIGHT))
+	w.SetContent(GetGUI())
 
-	var songList = []string{"song1", "song2", "song3", "song4", "song5", "song6", "song7", "song8", "song9", "song10", "song11", "song12", "song13", "song14", "song15", "song16", "song17", "song18"}
-
-	scrollArea := widget.NewList(
-		func() int { return len(songList) },
-		func() fyne.CanvasObject { return widget.NewLabel("template") },
-		func(i widget.ListItemID, o fyne.CanvasObject) { o.(*widget.Label).SetText(songList[i]) })
-
-	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() {})
-	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPause), func() {})
-	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() {})
-	controlArea := container.NewHBox(previousBtn, ppBtn, nextBtn)
-	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
-
-	progressBar := widget.NewProgressBar()
-	go func() {
-		songDur := 180
-		for i := 1; i < songDur; i++ {
-			time.Sleep(time.Second)
-			progressBar.SetValue(float64(i) / float64(songDur))
-		}
-	}()
-
-	controlGroup := container.NewVBox(controlArea, progressBar)
-
-	content := container.NewBorder(nil, controlGroup, nil, nil, scrollArea)
-	w.SetContent(content)
-
+	go setProg()
 	w.ShowAndRun()
-}
-
-func updateTime(clock *widget.Label) {
-	formatted := time.Now().Format("Time: 03:04:05")
-	clock.SetText(formatted)
 }

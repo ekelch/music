@@ -18,7 +18,7 @@ func GetGUI() *fyne.Container {
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
 	controlGroup := container.NewVBox(controlArea, buildSongProgress(), buildProgLabel())
-	content := container.NewBorder(nil, controlGroup, nil, nil, buildSongList())
+	content := container.NewBorder(buildSearchForm(), controlGroup, nil, nil, buildSongList())
 
 	return content
 }
@@ -31,6 +31,19 @@ func buildSongList() *widget.List {
 			btn.(*widget.Button).SetText(songList[i].name)
 			btn.(*widget.Button).OnTapped = func() { go readSong(songList[i]) }
 		})
+}
+
+func buildSearchForm() *fyne.Container {
+	searchInput := widget.NewEntry()
+	searchInput.SetPlaceHolder("Search for a video...")
+
+	fnInput := widget.NewEntry()
+	fnInput.SetPlaceHolder("file name...")
+
+	form := container.NewGridWithColumns(2, searchInput, fnInput)
+
+	searchContainer := container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
+	return container.NewGridWithColumns(3, layout.NewSpacer(), searchContainer, layout.NewSpacer())
 }
 
 func buildBtnGroup() *fyne.Container {

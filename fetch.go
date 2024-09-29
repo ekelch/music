@@ -17,7 +17,7 @@ func downloadSC(query string) {
 	}
 }
 
-// Deprecated: not tested bc of HTTP 429 on get request to server, switching to sc development
+// Deprecated: not tested/working much bc of HTTP 429 on get request to server, switching to sc development
 func downloadYoutubeVideo(query string, fileName string) {
 	fmtQ := "\"" + query + "\""
 	fmtQ = "https://www.youtube.com/watch?v=jlzgS2jKaIw"

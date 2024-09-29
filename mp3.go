@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 
@@ -32,6 +33,23 @@ func initMp3() { // only runs once on app start
 	otoGlobalContext = *otoContext
 
 	<-readyChan
+}
+
+func loadResources() {
+	resources, err := os.ReadDir("./resources")
+	if err != nil {
+		panic("Error reading resource dir: " + err.Error())
+	}
+	for _, file := range resources {
+		if !file.IsDir() && isFileType(file.Name(), ".mp3") {
+			fileBytes, err := os.ReadFile("./resources/" + file.Name())
+			if err != nil {
+				fmt.Printf("Failed to read file: %s\n%s\n", file.Name(), err.Error())
+				os.Exit(1)
+			}
+			songList = append(songList, Song{name: file.Name(), path: file.Name(), audio: fileBytes})
+		}
+	}
 }
 
 func decodeMp3(song *Song) *mp3.Decoder {
@@ -83,7 +101,7 @@ func ppSong() {
 func skipSong() {
 	ppSong()
 	for i, v := range songList {
-		if v == currentSong {
+		if v.path == currentSong.path {
 			readSong(songList[(i+1)%(len(songList))])
 			break
 		}

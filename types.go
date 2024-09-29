@@ -8,6 +8,7 @@ import (
 type Song struct {
 	name   string
 	path   string
+	audio  []byte
 	durSec int
 }
 

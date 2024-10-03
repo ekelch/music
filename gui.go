@@ -18,19 +18,40 @@ func GetGUI() *fyne.Container {
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
 	controlGroup := container.NewVBox(controlArea, buildSongProgress(), buildProgLabel())
-	content := container.NewBorder(nil, controlGroup, nil, nil, buildSongList())
+	content := container.NewBorder(buildSearchForm(), controlGroup, nil, nil, buildSongList())
 
 	return content
 }
 
 func buildSongList() *widget.List {
-	return widget.NewList(
-		func() int { return len(songList) },
-		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
-		func(i widget.ListItemID, btn fyne.CanvasObject) {
-			btn.(*widget.Button).SetText(songList[i].name)
-			btn.(*widget.Button).OnTapped = func() { go readSong(songList[i]) }
+	songListBinding = binding.BindStringList(&songList)
+	return widget.NewListWithData(
+		songListBinding,
+		func() fyne.CanvasObject {
+			return container.NewBorder(nil, nil, widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() {}), nil, widget.NewLabel("template"))
+		},
+		func(i binding.DataItem, o fyne.CanvasObject) {
+			o.(*fyne.Container).Objects[0].(*widget.Label).Bind(i.(binding.String))
+			bindV, err := i.(binding.String).Get()
+			if err != nil {
+				panic(err)
+			}
+			btn := o.(*fyne.Container).Objects[1].(*widget.Button)
+			btn.OnTapped = func() { readSong(bindV) }
 		})
+}
+
+func buildSearchForm() *fyne.Container {
+	searchInput := widget.NewEntry()
+	searchInput.SetPlaceHolder("Search for a video...")
+
+	fnInput := widget.NewEntry()
+	fnInput.SetPlaceHolder("file name...")
+
+	form := container.NewGridWithColumns(2, searchInput, fnInput)
+
+	searchContainer := container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
+	return container.NewGridWithColumns(2, searchContainer, layout.NewSpacer())
 }
 
 func buildBtnGroup() *fyne.Container {
@@ -90,6 +111,7 @@ func setProg() {
 var progressBinding binding.Float
 var progLabelBinding binding.String
 var volumeBinding binding.Float
+var songListBinding binding.StringList
 var songElapsed float64 = 0.0
 
 const PROG_MAX float64 = 10000

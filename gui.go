@@ -24,12 +24,27 @@ func GetGUI() *fyne.Container {
 }
 
 func buildSongList() *widget.List {
-	return widget.NewList(
-		func() int { return len(songList) },
-		func() fyne.CanvasObject { return widget.NewButton("template", func() {}) },
-		func(i widget.ListItemID, btn fyne.CanvasObject) {
-			btn.(*widget.Button).SetText(songList[i].name)
-			btn.(*widget.Button).OnTapped = func() { go readSong(songList[i]) }
+	songData := binding.BindStringList(&songList)
+	return widget.NewListWithData(
+		songData,
+		func() fyne.CanvasObject {
+			btn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() {})
+			lbl := widget.NewLabel("template")
+			return container.NewGridWithColumns(2, btn, lbl)
+		},
+		func(i binding.DataItem, o fyne.CanvasObject) {
+			lbl := o.(*fyne.Container).Objects[1].(*widget.Label)
+			lbl.Bind(i.(binding.String))
+			bindV, err := i.(binding.String).Get()
+			if err != nil {
+				panic(err)
+			}
+			btn := o.(*fyne.Container).Objects[0].(*widget.Button)
+			btn.OnTapped = func() { readSong(bindV) }
+
+			// o.(*widget.Label).Bind(i.(binding.String))
+			// o.(*widget.Button).OnTapped = func() { go readSong(o.(*widget.Label).Text) }
+
 		})
 }
 
@@ -42,7 +57,7 @@ func buildSearchForm() *fyne.Container {
 
 	form := container.NewGridWithColumns(2, searchInput, fnInput)
 
-	searchContainer := container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
+	searchContainer := container.NewBorder(nil, nil, widget.NewButton("mv temp files", func() { mvTemp() }), widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
 	return container.NewGridWithColumns(3, layout.NewSpacer(), searchContainer, layout.NewSpacer())
 }
 

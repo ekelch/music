@@ -43,27 +43,19 @@ func loadResources() {
 	}
 	for _, file := range resources {
 		if !file.IsDir() && isFileType(file.Name(), ".mp3") {
-			fileBytes, err := os.ReadFile("./resources/" + file.Name())
-			if err != nil {
-				fmt.Printf("Failed to read file: %s\n%s\n", file.Name(), err.Error())
-				os.Exit(1)
-			}
-			songList = append(songList, Song{name: file.Name(), path: file.Name(), audioBytes: fileBytes})
+			songList = append(songList, file.Name())
 		}
 	}
 }
 
 func addResource(path string) {
-	songBytes, err := os.ReadFile(path)
-	if err != nil {
-		fmt.Printf("Failed to read new file at %s\n", path)
-	}
-	songList = append(songList, Song{name: path, path: path, audioBytes: songBytes})
+	songList = append(songList, path)
+	fmt.Printf("new len: %d\n", len(songList))
 }
 
 func rmResource(path string) {
-	for i, song := range songList {
-		if song.path == path {
+	for i, _ := range songList {
+		if currentSong.path == path {
 			err := exec.Command("rm", path)
 			if err != nil {
 				fmt.Printf("Failed to rm from %s\n%s\n", path, err.Err.Error())
@@ -75,10 +67,20 @@ func rmResource(path string) {
 	}
 }
 
-func decodeMp3(song *Song) *mp3.Decoder {
-	fileBytes, err := os.ReadFile("resources/" + song.path)
+func setVolume(v float64) {
+	volumeBinding.Set(v * 100)
+	player.SetVolume(v)
+}
+
+func readSong(fileName string) {
+	if (player != oto.Player{}) {
+		player.Pause()
+	}
+
+	fileBytes, err := os.ReadFile("./resources/" + fileName)
 	if err != nil {
-		panic("Failed to read mp3 file: " + err.Error())
+		fmt.Printf("Failed to read file: %s\n%s\n", fileName, err.Error())
+		os.Exit(1)
 	}
 
 	reader := bytes.NewReader(fileBytes)
@@ -87,25 +89,10 @@ func decodeMp3(song *Song) *mp3.Decoder {
 	if err != nil {
 		panic("Failed to decode mp3 bytes reader: " + err.Error())
 	}
-	song.durSec = int(8 * decodedMp3.Length() / BITRATE)
-	return decodedMp3
-}
 
-func setVolume(v float64) {
-	volumeBinding.Set(v * 100)
-	player.SetVolume(v)
-}
-
-func readSong(song Song) {
-	if (player != oto.Player{}) {
-		player.Pause()
-	}
-	decodedMp3 := decodeMp3(&song)
-	currentSong = song
+	currentSong = Song{name: fileName, path: fileName, durSec: int(8 * decodedMp3.Length() / BITRATE)}
 
 	songElapsed = 0
-	temp = decodedMp3.Length()
-
 	player = *otoGlobalContext.NewPlayer(decodedMp3)
 	player.Play()
 }
@@ -124,7 +111,7 @@ func ppSong() {
 func skipSong() {
 	ppSong()
 	for i, v := range songList {
-		if v.path == currentSong.path {
+		if v == currentSong.path {
 			readSong(songList[(i+1)%(len(songList))])
 			break
 		}
@@ -148,5 +135,3 @@ func seekTime(percent float32) {
 		}
 	}
 }
-
-var temp int64

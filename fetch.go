@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 )
 
 func downloadSC(query string) {
-	dlCmd := exec.Command("./ext/sc", "-b", "-p", "./resources", "-f", query)
+	dlCmd := exec.Command("./ext/sc", "-b", "-p", "./temp", "-f", query)
 	err := dlCmd.Run()
 	if err != nil {
 		fmt.Printf("Failed to download audio file.\n")
@@ -14,6 +15,22 @@ func downloadSC(query string) {
 		return
 	} else {
 		fmt.Println("successfully downloaded file")
+		mvTemp()
+	}
+}
+
+func mvTemp() {
+	tempFiles, err := os.ReadDir("./temp")
+	if err != nil {
+		panic("error reading temp dir")
+	}
+	for _, t := range tempFiles {
+		fmt.Println("Attempting to move file: " + t.Name())
+		mvCmd := exec.Command("mv", "./temp/"+t.Name(), "resources/"+t.Name())
+		err := mvCmd.Run()
+		if err != nil {
+			panic("Failed moving " + t.Name())
+		}
 	}
 }
 
@@ -49,7 +66,7 @@ func downloadYoutubeVideo(query string, fileName string) {
 		fmt.Println("successfully deleted temp.mp4")
 	}
 
-	songList = append(songList, Song{name: fileName, path: fmtFile})
+	songList = append(songList, fileName)
 }
 
 var proxyPort int16 = 8000

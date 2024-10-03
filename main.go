@@ -9,7 +9,7 @@ import (
 var otoGlobalContext oto.Context
 var player oto.Player
 var currentSong Song
-var songList []Song
+var songList []string
 
 const WINDOW_WIDTH = 1200
 const WINDOW_HEIGHT = 700

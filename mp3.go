@@ -48,20 +48,21 @@ func loadResources() {
 	}
 }
 
-func addResource(path string) {
-	songList = append(songList, path)
-	fmt.Printf("new len: %d\n", len(songList))
+func addResource(fileName string) {
+	songList = append(songList, fileName)
+	songListBinding.Set(songList)
 }
 
-func rmResource(path string) {
+func rmResource(fileName string) {
 	for i, _ := range songList {
-		if currentSong.path == path {
-			err := exec.Command("rm", path)
+		if currentSong.path == fileName {
+			err := exec.Command("rm", fileName)
 			if err != nil {
-				fmt.Printf("Failed to rm from %s\n%s\n", path, err.Err.Error())
+				fmt.Printf("Failed to rm from %s\n%s\n", fileName, err.Err.Error())
 				return
 			}
 			songList = append(songList[:i], songList[i+1:]...)
+			songListBinding.Set(songList)
 			return
 		}
 	}

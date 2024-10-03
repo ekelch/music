@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -23,9 +24,9 @@ func watch() {
 				}
 				fmt.Println(event.String())
 				if event.Has(fsnotify.Create) {
-					addResource(event.Name)
+					addResource(strings.Split(event.Name, "/")[1])
 				} else if event.Has(fsnotify.Remove) {
-					rmResource(event.Name)
+					rmResource(strings.Split(event.Name, "/")[1])
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {

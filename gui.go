@@ -50,7 +50,7 @@ func buildSearchForm() *fyne.Container {
 
 	form := container.NewGridWithColumns(2, searchInput, fnInput)
 
-	searchContainer := container.NewBorder(nil, nil, widget.NewButton("mv temp files", func() { mvTemp() }), widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
+	searchContainer := container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
 	return container.NewGridWithColumns(2, searchContainer, layout.NewSpacer())
 }
 

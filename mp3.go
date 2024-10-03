@@ -42,7 +42,7 @@ func loadResources() {
 		panic("Error reading resource dir: " + err.Error())
 	}
 	for _, file := range resources {
-		if !file.IsDir() && isFileType(file.Name(), ".mp3") {
+		if !file.IsDir() && isFileType(file.Name(), ".mp3") || isFileType(file.Name(), ".ogg") {
 			songList = append(songList, file.Name())
 		}
 	}

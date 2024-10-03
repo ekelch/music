@@ -24,5 +24,6 @@ func main() {
 	w.SetContent(GetGUI())
 
 	go setProg()
+	go watch() //go to go
 	w.ShowAndRun()
 }

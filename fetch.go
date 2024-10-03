@@ -18,6 +18,7 @@ func downloadSC(query string) {
 }
 
 // Deprecated: not tested/working much bc of HTTP 429 on get request to server, switching to sc development
+// requires ffmpeg in local path
 func downloadYoutubeVideo(query string, fileName string) {
 	fmtQ := "\"" + query + "\""
 	fmtQ = "https://www.youtube.com/watch?v=jlzgS2jKaIw"

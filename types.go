@@ -6,10 +6,10 @@ import (
 )
 
 type Song struct {
-	name   string
-	path   string
-	audio  []byte
-	durSec int
+	name       string
+	path       string
+	audioBytes []byte
+	durSec     int
 }
 
 type progressSlider struct {

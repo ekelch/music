@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 
 	"github.com/ebitengine/oto/v3"
 	"github.com/hajimehoshi/go-mp3"
@@ -47,7 +48,29 @@ func loadResources() {
 				fmt.Printf("Failed to read file: %s\n%s\n", file.Name(), err.Error())
 				os.Exit(1)
 			}
-			songList = append(songList, Song{name: file.Name(), path: file.Name(), audio: fileBytes})
+			songList = append(songList, Song{name: file.Name(), path: file.Name(), audioBytes: fileBytes})
+		}
+	}
+}
+
+func addResource(path string) {
+	songBytes, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Printf("Failed to read new file at %s\n", path)
+	}
+	songList = append(songList, Song{name: path, path: path, audioBytes: songBytes})
+}
+
+func rmResource(path string) {
+	for i, song := range songList {
+		if song.path == path {
+			err := exec.Command("rm", path)
+			if err != nil {
+				fmt.Printf("Failed to rm from %s\n%s\n", path, err.Err.Error())
+				return
+			}
+			songList = append(songList[:i], songList[i+1:]...)
+			return
 		}
 	}
 }

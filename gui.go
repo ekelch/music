@@ -28,30 +28,50 @@ func buildSongList() *widget.List {
 	return widget.NewListWithData(
 		songListBinding,
 		func() fyne.CanvasObject {
-			return container.NewBorder(nil, nil, widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() {}), nil, widget.NewLabel("template"))
+			return container.NewBorder(
+				nil,
+				nil,
+				widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() {}),
+				container.NewHBox(widget.NewButton("rename", func() {}), widget.NewButton("move", func() {})),
+				widget.NewLabel("template"))
 		},
 		func(i binding.DataItem, o fyne.CanvasObject) {
 			o.(*fyne.Container).Objects[0].(*widget.Label).Bind(i.(binding.String))
-			bindV, err := i.(binding.String).Get()
+
+			item, err := i.(binding.String).Get()
 			if err != nil {
 				panic(err)
 			}
-			btn := o.(*fyne.Container).Objects[1].(*widget.Button)
-			btn.OnTapped = func() { readSong(bindV) }
+
+			makePlayBtn(item, o.(*fyne.Container).Objects[1].(*widget.Button))
+			makeRenameBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*widget.Button))
+			makeMoveBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*widget.Button))
 		})
+}
+
+func makePlayBtn(item string, btn *widget.Button) {
+	btn.OnTapped = func() {
+		readSong(item)
+	}
+}
+
+func makeRenameBtn(item string, btn *widget.Button) {
+	btn.OnTapped = func() {
+		fmt.Println("Renaming " + item)
+	}
+}
+
+func makeMoveBtn(item string, btn *widget.Button) {
+	btn.OnTapped = func() {
+		fmt.Println("Moving " + item)
+	}
 }
 
 func buildSearchForm() *fyne.Container {
 	searchInput := widget.NewEntry()
 	searchInput.SetPlaceHolder("Search for a video...")
 
-	fnInput := widget.NewEntry()
-	fnInput.SetPlaceHolder("file name...")
-
-	form := container.NewGridWithColumns(2, searchInput, fnInput)
-
-	searchContainer := container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), form)
-	return container.NewGridWithColumns(2, searchContainer, layout.NewSpacer())
+	return container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), searchInput)
 }
 
 func buildBtnGroup() *fyne.Container {

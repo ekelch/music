@@ -22,11 +22,15 @@ func watch() {
 				if !ok {
 					return
 				}
-				fmt.Println(event.String())
+				fmt.Println(event.Name)
+				fileName, prefixed := strings.CutPrefix(event.Name, RES_DIR+"/")
+				if !prefixed {
+					panic("Failing to move files, RESDIR not found")
+				}
 				if event.Has(fsnotify.Create) {
-					addResource(strings.Split(event.Name, "/")[1])
+					addResource(fileName)
 				} else if event.Has(fsnotify.Remove) {
-					rmResource(strings.Split(event.Name, "/")[1])
+					rmResource(fileName)
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -38,7 +42,7 @@ func watch() {
 	}()
 
 	//add path to watch
-	path := "./resources"
+	path := RES_DIR
 	err = watcher.Add(path)
 	if err != nil {
 		fmt.Printf("Failed to add watcher to path: %s", path)

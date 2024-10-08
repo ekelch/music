@@ -1,0 +1,8 @@
+Website = "https://example.com"
+
+[Details]
+Icon = "meow.png"
+Name = "Evan's Music Player"
+ID = "com.example.app"
+Version = "1.0.0"
+Build = 1

@@ -45,7 +45,7 @@ func buildSongList() *widget.List {
 
 			makePlayBtn(item, o.(*fyne.Container).Objects[1].(*widget.Button))
 			makeRenameBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*widget.Button))
-			makeMoveBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*widget.Button))
+			makeDeleteBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*widget.Button))
 		})
 }
 
@@ -61,15 +61,15 @@ func makeRenameBtn(item string, btn *widget.Button) {
 	}
 }
 
-func makeMoveBtn(item string, btn *widget.Button) {
+func makeDeleteBtn(item string, btn *widget.Button) {
 	btn.OnTapped = func() {
-		fmt.Println("Moving " + item)
+		fmt.Println("Deleting " + item)
 	}
 }
 
 func buildSearchForm() *fyne.Container {
 	searchInput := widget.NewEntry()
-	searchInput.SetPlaceHolder("Search for a video...")
+	searchInput.SetPlaceHolder("Search on Soundcloud...")
 
 	return container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), searchInput)
 }

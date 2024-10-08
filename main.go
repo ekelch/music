@@ -14,6 +14,9 @@ var songList []string
 const WINDOW_WIDTH = 1200
 const WINDOW_HEIGHT = 700
 
+var RES_DIR string
+var TEMP_DIR string
+
 func main() {
 	initMp3()
 	loadResources()

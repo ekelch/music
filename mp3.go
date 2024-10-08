@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 
 	"github.com/ebitengine/oto/v3"
 	"github.com/hajimehoshi/go-mp3"
@@ -36,38 +35,6 @@ func initMp3() { // only runs once on app start
 	<-readyChan
 }
 
-func loadResources() {
-	resources, err := os.ReadDir("./resources")
-	if err != nil {
-		panic("Error reading resource dir: " + err.Error())
-	}
-	for _, file := range resources {
-		if !file.IsDir() && isFileType(file.Name(), ".mp3") || isFileType(file.Name(), ".ogg") {
-			songList = append(songList, file.Name())
-		}
-	}
-}
-
-func addResource(fileName string) {
-	songList = append(songList, fileName)
-	songListBinding.Set(songList)
-}
-
-func rmResource(fileName string) {
-	for i, _ := range songList {
-		if currentSong.path == fileName {
-			err := exec.Command("rm", fileName)
-			if err != nil {
-				fmt.Printf("Failed to rm from %s\n%s\n", fileName, err.Err.Error())
-				return
-			}
-			songList = append(songList[:i], songList[i+1:]...)
-			songListBinding.Set(songList)
-			return
-		}
-	}
-}
-
 func setVolume(v float64) {
 	volumeBinding.Set(v * 100)
 	player.SetVolume(v)
@@ -78,7 +45,7 @@ func readSong(fileName string) {
 		player.Pause()
 	}
 
-	fileBytes, err := os.ReadFile("./resources/" + fileName)
+	fileBytes, err := os.ReadFile(RES_DIR + "/" + fileName)
 	if err != nil {
 		fmt.Printf("Failed to read file: %s\n%s\n", fileName, err.Error())
 		os.Exit(1)

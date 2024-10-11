@@ -32,7 +32,7 @@ func buildSongList() *widget.List {
 				nil,
 				nil,
 				widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() {}),
-				container.NewHBox(widget.NewButton("rename", func() {}), widget.NewButton("move", func() {})),
+				container.NewHBox(widget.NewButton("rename", func() {}), widget.NewButton("delete", func() {})),
 				widget.NewLabel("template"))
 		},
 		func(i binding.DataItem, o fyne.CanvasObject) {
@@ -43,27 +43,56 @@ func buildSongList() *widget.List {
 				panic(err)
 			}
 
-			makePlayBtn(item, o.(*fyne.Container).Objects[1].(*widget.Button))
-			makeRenameBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*widget.Button))
-			makeDeleteBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*widget.Button))
+			gf_playBtn(item, o.(*fyne.Container).Objects[1].(*widget.Button))
+			gf_renameBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container), 0)
+			gf_deleteBtn(item, o.(*fyne.Container).Objects[2].(*fyne.Container), 1)
 		})
 }
 
-func makePlayBtn(item string, btn *widget.Button) {
+func gf_playBtn(item string, btn *widget.Button) {
 	btn.OnTapped = func() {
 		readSong(item)
 	}
 }
 
-func makeRenameBtn(item string, btn *widget.Button) {
-	btn.OnTapped = func() {
-		fmt.Println("Renaming " + item)
+func replaceRightDiv_mv(item string, hbox *fyne.Container) {
+	oldContents := hbox.Objects
+	hbox.RemoveAll()
+	hbox.Add(getMoveForm(item, hbox, oldContents))
+}
+
+func setDivContent(hbox *fyne.Container, newContents []fyne.CanvasObject) {
+	hbox.RemoveAll()
+	for _, o := range newContents {
+		hbox.Add(o)
 	}
 }
 
-func makeDeleteBtn(item string, btn *widget.Button) {
+func getMoveForm(oldFileName string, hbox *fyne.Container, oldContents []fyne.CanvasObject) *fyne.Container {
+	mvInput := widget.NewEntry()
+	mvInput.PlaceHolder = "New File Name..."
+	mvBtn := widget.NewButton("Confirm", func() {
+		if len(mvInput.Text) > 0 {
+			fmt.Printf("Renaming %s to %s\n", oldFileName, mvInput.Text)
+			mvResource(oldFileName, mvInput.Text)
+			setDivContent(hbox, oldContents)
+		}
+	})
+	return container.NewHBox(mvInput, mvBtn)
+}
+
+func gf_renameBtn(item string, contain *fyne.Container, childIndex int) {
+	btn := contain.Objects[childIndex].(*widget.Button)
+	btn.OnTapped = func() {
+		replaceRightDiv_mv(item, contain)
+	}
+}
+
+func gf_deleteBtn(item string, contain *fyne.Container, childIndex int) {
+	btn := contain.Objects[childIndex].(*widget.Button)
 	btn.OnTapped = func() {
 		fmt.Println("Deleting " + item)
+		rmResource(item)
 	}
 }
 

@@ -22,7 +22,7 @@ func watch() {
 				if !ok {
 					return
 				}
-				fmt.Println(event.Name)
+				fmt.Println(event.String())
 				fileName, prefixed := strings.CutPrefix(event.Name, RES_DIR+"/")
 				if !prefixed {
 					panic("Failing to move files, RESDIR not found")

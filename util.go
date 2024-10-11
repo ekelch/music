@@ -9,6 +9,28 @@ import (
 
 var supportedExt []string = []string{".mp3", ".ogg"}
 
+func isMusic(fileWithExt string) bool {
+	for _, ext := range supportedExt {
+		if strings.Contains(fileWithExt, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+func rmSongAtIndex(index int) {
+	songList = append(songList[:index], songList[index+1:]...)
+	songListBinding.Set(songList)
+}
+
+func rmSongByName(fileName string) {
+	for i, v := range songList {
+		if v == fileName {
+			rmSongAtIndex(i)
+		}
+	}
+}
+
 func loadResources() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -51,38 +73,34 @@ func addResource(fileName string) {
 	songListBinding.Set(songList)
 }
 
-func rmResource(fileName string) error {
-	for i, _ := range songList {
-		if currentSong.path == fileName {
-			rmCmd := exec.Command("rm", fileName)
+func rmResource(fileName string) {
+	path := RES_DIR + "/" + fileName
+	for i, v := range songList {
+		if v == fileName {
+			rmCmd := exec.Command("rm", path)
 			err := rmCmd.Run()
 			if err != nil {
-				return err
+				panic("Fatal error while removing file " + path + "\n" + err.Error())
 			}
-			songList = append(songList[:i], songList[i+1:]...)
-			songListBinding.Set(songList)
-			return nil
+			rmSongAtIndex(i)
 		}
 	}
-	panic("File not found while rm in rmResource")
 }
 
-func mvResource(oldName string, newName string) error {
+func mvResource(oldName string, newName string) {
+	if !isMusic(newName) {
+		newName = newName + ".mp3" //todo obvious temp...
+	}
 	oPath := RES_DIR + "/" + oldName
 	nPath := RES_DIR + "/" + newName
 	mvCmd := exec.Command("mv", oPath, nPath)
-	return mvCmd.Run()
+	err := mvCmd.Run()
+	if err != nil {
+		panic("Fatal error moving files: " + oldName + " to " + newName + "\n" + err.Error())
+	}
+	rmSongByName(oldName)
 }
 
 func isFileType(fileName string, fileType string) bool { // very poor impl lol
 	return strings.Contains(fileName, fileType)
-}
-
-func isMusic(fileWithExt string) bool {
-	for _, ext := range supportedExt {
-		if strings.Contains(fileWithExt, ext) {
-			return true
-		}
-	}
-	return false
 }

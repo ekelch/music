@@ -14,7 +14,7 @@ import (
 )
 
 func GetGUI() *fyne.Container {
-	controlArea := container.NewGridWithColumns(5, buildBtnGroup(), layout.NewSpacer(), layout.NewSpacer(), layout.NewSpacer(), buildVolumeSlider())
+	controlArea := container.NewGridWithColumns(5, buildControlBtns(), layout.NewSpacer(), layout.NewSpacer(), layout.NewSpacer(), buildVolumeSlider())
 	controlArea.Resize(fyne.Size{Width: 300, Height: 150})
 
 	controlGroup := container.NewVBox(controlArea, buildSongProgress(), buildProgLabel())
@@ -70,11 +70,23 @@ func makeDeleteBtn(item string, btn *widget.Button) {
 func buildSearchForm() *fyne.Container {
 	searchInput := widget.NewEntry()
 	searchInput.SetPlaceHolder("Search on Soundcloud...")
+	searchBtn := widget.NewButton("Search", nil)
+	searchBtn.OnTapped = func() {
+		fmt.Println(searchInput.Text)
+		if len(searchInput.Text) > 0 {
+			searchInput.Disable()
+			searchBtn.Disable()
+			downloadSC(searchInput.Text)
+			searchInput.Text = ""
+			searchInput.Enable()
+			searchBtn.Enable()
+		}
+	}
 
-	return container.NewBorder(nil, nil, nil, widget.NewButton("Search", func() { downloadSC(searchInput.Text) }), searchInput)
+	return container.NewBorder(nil, nil, nil, searchBtn, searchInput)
 }
 
-func buildBtnGroup() *fyne.Container {
+func buildControlBtns() *fyne.Container {
 	previousBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipPrevious), func() { restartSong() })
 	ppBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaPlay), func() { ppSong() })
 	nextBtn := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameMediaSkipNext), func() { skipSong() })
